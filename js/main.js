@@ -81,7 +81,6 @@ $(document).ready(async function() {
             $('.title').text(doc_data[docParrent]['links'][docChild]['title']);
             $('.path').text(doc_data[docParrent]['links'][docChild]['data']['path']);
             $('.code').html(doc_data[docParrent]['links'][docChild]['data']['code']);
-			doc_data[docParrent]['links'][docChild]['data']['description'] = enhanceImages(doc_data[docParrent]['links'][docChild]['data']['description']);
             $('.description').html(doc_data[docParrent]['links'][docChild]['data']['description'].replace(/\n/g, '<br/>'));
             $('.edit').data('id', action);
             $('.delete').data('id', action);
@@ -248,17 +247,29 @@ $(document).ready(async function() {
     });
 
 
-	document.querySelectorAll('details').forEach(details => {
-	  details.addEventListener('toggle', e => {
-		const content = details.querySelectorAll('summary ~ *');
-		content.forEach(el => {
-		  // принудительно сбросить анимацию
-		  el.style.animation = 'none';
-		  // чтобы браузер успел применить
-		  void el.offsetWidth;
-		  // вернуть анимацию
-		  el.style.animation = '';
+
+	 // Функция для сброса и запуска анимации
+	function resetSweepAnimation(details) {
+		const $content = $(details).children('summary').nextAll();
+		$content.each(function() {
+			this.style.animation = 'none';        
+			void this.offsetWidth;                
+			this.style.animation = 'sweepin 0.5s ease-in-out'; 
 		});
-	  });
+	}
+
+	// Делегируем toggle на .description
+	$('.description').on('click', 'details > summary', function() {
+		 const details = this.parentElement;
+		setTimeout(() => {
+				if (details.open) { // теперь состояние правильное
+					const $content = $(details).children('summary').nextAll();
+					$content.each(function() {
+						this.style.animation = 'none';
+						void this.offsetWidth; // принудительный reflow
+						this.style.animation = 'sweepin 0.5s ease-in-out';
+					});
+				}
+			}, 0);
 	});
 });
