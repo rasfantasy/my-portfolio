@@ -33,6 +33,9 @@ summary {
     font-weight: bold;
     margin: -.5em -.5em 0;
     padding: .5em;
+	
+	backdrop-filter: blur(4px) saturate(180%);
+	-webkit-backdrop-filter: blur(4px) saturate(180%);
 }
 
 details[open] {
@@ -42,6 +45,9 @@ details[open] {
 details[open] summary {
     border-bottom: 1px solid #aaa;
     margin-bottom: .5em;
+	
+	background-color: #33333366 !important;
+
 }
 
 /* Other Styles */
@@ -79,13 +85,27 @@ details[open] summary {
 	background-color: #c7accf;
 }
 
+.description details[open] summary {
+	top: 0px;
+	border-radius: 0px 0px 4px 4px;
+	backdrop-filter: blur(4px) saturate(180%);
+	-webkit-backdrop-filter: blur(4px) saturate(180%);
+	background: unset;
+	
+	background: rgba(199, 172, 207, 0.65) !important;
+	position: sticky;
+}
+
 
 .description ::-webkit-scrollbar-track {
   background-color: rgba(0,0,0,0);
 }
 
 .description details[open] {
-	min-height: 70vh !important;
+	/* min-height: 70vh !important; */
+	min-height: min-content;
+    padding-bottom: 50px;
+	overflow: inherit;
 }
 
 .path {
@@ -137,8 +157,11 @@ details[open] summary {
 
 
 .dark-menu {
-    background: #333333;
+   /* background: #333333; */
     border: 1px solid rgba(255, 247, 247, 0.35);
+	background: #3333337a;
+    border: 1px solid rgba(255, 247, 247, 0.35);
+    backdrop-filter: blur(4px) saturate(180%);
 }
 
 .dark-item{
@@ -238,6 +261,12 @@ table tbody tr:last-child td:last-child {
 	.description img {
 		max-width: 80vw !important;
 	}
+	
+	details[open] summary {
+    
+	position: sticky;
+    top: 0px;
+	}
 }
 
 
@@ -245,8 +274,9 @@ table tbody tr:last-child td:last-child {
 details[open] SUMMARY~* {
     animation: sweepin .5s ease-in-out;
 }
-details:not([open]) SUMMARY~* {
-    animation: sweepout .5s ease-in-out;
+
+details:not([open]) summary ~ * {
+  animation: none;
 }
 
 @keyframes sweepout {

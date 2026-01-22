@@ -248,4 +248,17 @@ $(document).ready(async function() {
     });
 
 
+	document.querySelectorAll('details').forEach(details => {
+	  details.addEventListener('toggle', e => {
+		const content = details.querySelectorAll('summary ~ *');
+		content.forEach(el => {
+		  // принудительно сбросить анимацию
+		  el.style.animation = 'none';
+		  // чтобы браузер успел применить
+		  void el.offsetWidth;
+		  // вернуть анимацию
+		  el.style.animation = '';
+		});
+	  });
+	});
 });
