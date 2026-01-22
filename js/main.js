@@ -21,7 +21,7 @@ $(document).ready(async function() {
         }
     });
 	
-	if(window.location.origin.indexOf("github") != -1) $('.navbarCRUD').css('visibility', 'hidden');
+	if(window.location.origin.indexOf("github") == -1) $('.navbarCRUD').css('visibility', 'visible');
 
     async function loadJson() {
         let response = await fetch('data/data.json?nocache=' + (new Date()).getTime());
