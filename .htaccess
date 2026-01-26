@@ -2,12 +2,4 @@
     DirectoryIndex index.html
 </IfModule>
 
-<IfModule mod_headers.c>
-    Header set Access-Control-Expose-Headers "Content-Length"
-</IfModule>
-
-<IfModule mod_deflate.c>
-    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|zip|gz|rar|iso|exe|pdf|mp4|json)$ no-gzip dont-vary
-</IfModule>
-
 AddDefaultCharset UTF-8
