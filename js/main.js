@@ -78,19 +78,19 @@ $(document).ready(async function() {
                     const sidebar = await fetchJsonWithProgress(
                         `data/data.json?nocache=${Date.now()}`,
                         (loaded, total) => {
-                            if (!total) {
+                         //   if (!total) {
 
-                                $('.bar').css('display', 'none');
-                                $('.progress').css('display', 'none');
+                               // $('.bar').css('display', 'none');
+                             //   $('.progress').css('display', 'none');
                                 // нет Content-Length: показываем “примерно” или просто анимацию
-                                pct.textContent = `${Math.round(loaded / 1024)} KB`;
+                                pct.textContent = `${Math.round(loaded / 1024)} КБ`;
                                 return;
-                            }
+                        /*    }
                             $('.progress').css('display', 'block');
                             $('.bar').css('display', 'block');
                             const p = Math.round((loaded / total) * 100);
                             bar.style.width = p + "%";
-                            pct.textContent = p + "%";
+                            pct.textContent = p + "%";*/
                         }
                     );
 
