@@ -23,9 +23,75 @@ $(document).ready(async function() {
 	
 	if(window.location.origin.indexOf("github") == -1) $('.navbarCRUD').css('visibility', 'visible');
 
+	async function fetchJsonWithProgress(url, onProgress) {
+	  const res = await fetch(url, { cache: "no-store" });
+	  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+	  // Content-Length нужен для процентов
+	  const total = Number(res.headers.get("Content-Length")) || 0;
+
+	  // Если стриминга нет (старые браузеры / некоторые окружения)
+	  if (!res.body || !res.body.getReader) {
+		const json = await res.json();
+		onProgress?.(1, 1); // 100%
+		return json;
+	  }
+
+	  const reader = res.body.getReader();
+	  const chunks = [];
+	  let received = 0;
+
+	  while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		chunks.push(value);
+		received += value.length;
+
+		if (total) onProgress?.(received, total);
+		else onProgress?.(received, 0); // total неизвестен
+	  }
+
+	  // Склеиваем и парсим
+	  const all = new Uint8Array(received);
+	  let pos = 0;
+	  for (const c of chunks) {
+		all.set(c, pos);
+		pos += c.length;
+	  }
+
+	  const text = new TextDecoder("utf-8").decode(all);
+	  return JSON.parse(text);
+	}
+	
+	
     async function loadJson() {
-        let response = await fetch('data/data.json?nocache=' + (new Date()).getTime());
-        let sidebar = await response.json();
+		$('.loader_screen').css('display', 'flex');
+		$('body').css('overflow', 'hidden');
+		
+       // let response = await fetch('data/data.json?nocache=' + (new Date()).getTime());
+      //  let sidebar = await response.json();
+		
+		const bar = document.getElementById("bar");
+		const pct = document.getElementById("pct");
+
+		const sidebar = await fetchJsonWithProgress(
+		  `data/data.json?nocache=${Date.now()}`,
+		  (loaded, total) => {
+			if (!total) {
+				$('.bar').css('display', 'none');
+				$('.progress').css('display', 'none');
+			  // нет Content-Length: показываем “примерно” или просто анимацию
+			  pct.textContent = `${Math.round(loaded / 1024)} KB`;
+			  return;
+			}
+			$('.progress').css('display', 'visible');
+			$('.bar').css('display', 'visible');
+			const p = Math.round((loaded / total) * 100);
+			bar.style.width = p + "%";
+			pct.textContent = p + "%";
+		  }
+		);
+
         let html = '';
         $('.category_id').html('');
         $.each(sidebar, function(key, val) {
@@ -41,6 +107,15 @@ $(document).ready(async function() {
             html += '</details>';
         });
         $('.sidebar').html(html);
+		
+		$('.loader_screen').addClass('hide');
+		$('body').css('overflow', 'visible');
+
+		$('.loader_screen').one('transitionend', function () {
+		  $(this).css('display', 'none');
+		  $('body').css('overflow', 'visible');
+		});
+
         return sidebar;
     }
 	
@@ -120,7 +195,7 @@ $(document).ready(async function() {
     async function sync() {
         await postData('post.php', doc_data)
             .then((data) => {
-                console.log(data);
+                //console.log(data);
             });
         doc_data = await loadJson();
     }
@@ -160,7 +235,6 @@ $(document).ready(async function() {
             case 'addPost': {
                 let category = data['category_id'];
                 let links = {};
-                console.log(doc_data[category]);
                 if (doc_data[category]['links'] == null) doc_data[category]['links'] = [];
                 links['title'] = data['title'];
                 links['data'] = {};
@@ -231,7 +305,7 @@ $(document).ready(async function() {
     });
 
     $('.edit').click(async function(e) {
-        console.log();
+		e.preventDefault();
         data = await getPost($(this).data('id'));
         $('#post_id_edit').val($(this).data('id'));
         $('#edit_title').val(data['title']);
@@ -242,6 +316,8 @@ $(document).ready(async function() {
     });
 
     $('.delete').click(async function(e) {
+		console.log($(this));
+		e.preventDefault();
         $('#deletePost').modal('show');
         $('#post_id').val($(this).data('id'));
     });

@@ -2,4 +2,8 @@
     DirectoryIndex index.html
 </IfModule>
 
+<IfModule mod_headers.c>
+    Header set Access-Control-Expose-Headers "Content-Length"
+</IfModule>
+
 AddDefaultCharset UTF-8
