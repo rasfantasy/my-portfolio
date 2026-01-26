@@ -65,7 +65,7 @@ details[open] summary {
 .bar {
   width: 0%;
   height: 100%;
-  background: rgba(255,255,255,.85);
+  background: linear-gradient(169deg, rgba(238,174,202,1) 25%, rgba(148,187,233,1) 100%);
   transition: width 80ms linear; /* мелкая плавность */
   
   align-self: center;

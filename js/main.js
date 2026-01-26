@@ -27,10 +27,13 @@ $(document).ready(async function() {
 	  const res = await fetch(url, { cache: "no-store" });
 	  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-	  // Content-Length нужен для процентов
 	  const total = Number(res.headers.get("Content-Length")) || 0;
+	  const encoding = (res.headers.get("Content-Encoding") || "").toLowerCase();
 
-	  // Если стриминга нет (старые браузеры / некоторые окружения)
+	  // gzip / br / deflate => проценты невалидны
+	  const canShowPercent = total > 0 && !encoding;
+
+	  // Если стриминга нет
 	  if (!res.body || !res.body.getReader) {
 		const json = await res.json();
 		onProgress?.(1, 1); // 100%
@@ -44,11 +47,16 @@ $(document).ready(async function() {
 	  while (true) {
 		const { done, value } = await reader.read();
 		if (done) break;
+
 		chunks.push(value);
 		received += value.length;
 
-		if (total) onProgress?.(received, total);
-		else onProgress?.(received, 0); // total неизвестен
+		if (canShowPercent) {
+		  onProgress?.(received, total);
+		} else {
+		  // gzip: отдаём только "сколько получили", total = 0
+		  onProgress?.(received, 0);
+		}
 	  }
 
 	  // Склеиваем и парсим
@@ -61,8 +69,7 @@ $(document).ready(async function() {
 
 	  const text = new TextDecoder("utf-8").decode(all);
 	  return JSON.parse(text);
-	}
-	
+	}	
 	
     async function loadJson() {
 		$('.loader_screen').css('display', 'flex');
@@ -78,14 +85,15 @@ $(document).ready(async function() {
 		  `data/data.json?nocache=${Date.now()}`,
 		  (loaded, total) => {
 			if (!total) {
+				
 				$('.bar').css('display', 'none');
 				$('.progress').css('display', 'none');
 			  // нет Content-Length: показываем “примерно” или просто анимацию
 			  pct.textContent = `${Math.round(loaded / 1024)} KB`;
 			  return;
 			}
-			$('.progress').css('display', 'visible');
-			$('.bar').css('display', 'visible');
+			$('.progress').css('display', 'block');
+			$('.bar').css('display', 'block');
 			const p = Math.round((loaded / total) * 100);
 			bar.style.width = p + "%";
 			pct.textContent = p + "%";
