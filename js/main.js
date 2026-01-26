@@ -24,52 +24,44 @@ $(document).ready(async function() {
 	if(window.location.origin.indexOf("github") == -1) $('.navbarCRUD').css('visibility', 'visible');
 
 	async function fetchJsonWithProgress(url, onProgress) {
-	  const res = await fetch(url, { cache: "no-store" });
-	  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-	  const total = Number(res.headers.get("Content-Length")) || 0;
-	  const encoding = (res.headers.get("Content-Encoding") || "").toLowerCase();
+  // Content-Length нужен для процентов
+  const total = Number(res.headers.get("Content-Length")) || 0;
 
-	  // gzip / br / deflate => проценты невалидны
-	  const canShowPercent = total > 0 && !encoding;
+  // Если стриминга нет (старые браузеры / некоторые окружения)
+  if (!res.body || !res.body.getReader) {
+    const json = await res.json();
+    onProgress?.(1, 1); // 100%
+    return json;
+  }
 
-	  // Если стриминга нет
-	  if (!res.body || !res.body.getReader) {
-		const json = await res.json();
-		onProgress?.(1, 1); // 100%
-		return json;
-	  }
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
 
-	  const reader = res.body.getReader();
-	  const chunks = [];
-	  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
 
-	  while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
+    if (total) onProgress?.(received, total);
+    else onProgress?.(received, 0); // total неизвестен
+  }
 
-		chunks.push(value);
-		received += value.length;
+  // Склеиваем и парсим
+  const all = new Uint8Array(received);
+  let pos = 0;
+  for (const c of chunks) {
+    all.set(c, pos);
+    pos += c.length;
+  }
 
-		if (canShowPercent) {
-		  onProgress?.(received, total);
-		} else {
-		  // gzip: отдаём только "сколько получили", total = 0
-		  onProgress?.(received, 0);
-		}
-	  }
-
-	  // Склеиваем и парсим
-	  const all = new Uint8Array(received);
-	  let pos = 0;
-	  for (const c of chunks) {
-		all.set(c, pos);
-		pos += c.length;
-	  }
-
-	  const text = new TextDecoder("utf-8").decode(all);
-	  return JSON.parse(text);
-	}	
+  const text = new TextDecoder("utf-8").decode(all);
+  return JSON.parse(text);
+}
 	
     async function loadJson() {
 		$('.loader_screen').css('display', 'flex');
@@ -164,6 +156,7 @@ $(document).ready(async function() {
             $('.title').text(doc_data[docParrent]['links'][docChild]['title']);
             $('.path').text(doc_data[docParrent]['links'][docChild]['data']['path']);
             $('.code').html(doc_data[docParrent]['links'][docChild]['data']['code']);
+			doc_data[docParrent]['links'][docChild]['data']['description'] = enhanceImages(doc_data[docParrent]['links'][docChild]['data']['description']);
             $('.description').html(doc_data[docParrent]['links'][docChild]['data']['description'].replace(/\n/g, '<br/>'));
             $('.edit').data('id', action);
             $('.delete').data('id', action);
