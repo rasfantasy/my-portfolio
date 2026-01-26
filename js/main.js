@@ -27,10 +27,18 @@ $(document).ready(async function() {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  // Content-Length нужен для процентов
-  const total = Number(res.headers.get("Content-Length")) || 0;
+  // Для обычного случая: берём Content-Length
+  const contentLength = Number(res.headers.get("Content-Length")) || 0;
 
-  // Если стриминга нет (старые браузеры / некоторые окружения)
+  // Для gzip-случая (когда reader может отдавать распакованное):
+  // сервер должен отдать X-Uncompressed-Length (в байтах).
+  const uncompressedLength = Number(res.headers.get("X-Uncompressed-Length")) || 0;
+
+  // Выбираем "правильный total":
+  // 1) если есть X-Uncompressed-Length — используем его (это размер распакованного JSON)
+  // 2) иначе используем Content-Length (работает на GitHub, если reader считает сжатые байты)
+  const total = uncompressedLength || contentLength;
+
   if (!res.body || !res.body.getReader) {
     const json = await res.json();
     onProgress?.(1, 1); // 100%
@@ -48,10 +56,9 @@ $(document).ready(async function() {
     received += value.length;
 
     if (total) onProgress?.(received, total);
-    else onProgress?.(received, 0); // total неизвестен
+    else onProgress?.(received, 0);
   }
 
-  // Склеиваем и парсим
   const all = new Uint8Array(received);
   let pos = 0;
   for (const c of chunks) {
