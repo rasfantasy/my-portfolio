@@ -23,6 +23,7 @@ $(document).ready(async function() {
 
             if (window.location.origin.indexOf("github") == -1) $('.navbarCRUD').css('visibility', 'visible');
 
+
 				async function fetchJsonWithProgress(url, onProgress) {
 						  const res = await fetch(url, { cache: "no-store" });
 						  if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -167,6 +168,28 @@ $(document).ready(async function() {
 
                         PR.prettyPrint();
 
+/*Prism.hooks.add('before-sanity-check', function (env) {
+  env.element.innerHTML = env.element.innerHTML.replace(/<br>/g, '\n');
+  env.code = env.element.textContent;
+});*/
+
+			/*			Prism.plugins.NormalizeWhitespace.setDefaults({
+									'remove-trailing': true,
+									'remove-indent': true,
+									'left-trim': true,
+									'right-trim': true,
+									'break-lines': 60, //max number of characters in each line before break
+						});*/
+						
+						Prism.hooks.add('before-sanity-check', function (env)
+						{
+						  env.element.innerHTML = env.element.innerHTML.replace(/<br>/g, '\n');
+						  
+						  env.code = env.element.textContent;
+						});
+						Prism.highlightAll()
+						
+						
                         if (doc_data[docParrent]['links'][docChild]['data']['path'].length <= 1) {
                             $('.path').css('visibility', 'hidden')
                             $('.main-content').css('display', 'none')
