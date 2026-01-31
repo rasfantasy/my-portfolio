@@ -387,7 +387,7 @@ table tbody tr:last-child td:last-child {
 }
 @media (min-width: 992px) {
 	details {
-		max-height: 40vh;
+		
 		overflow: auto;
 		
 		position: relative;
