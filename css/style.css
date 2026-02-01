@@ -52,6 +52,7 @@ details[open] summary {
 
 /* Other Styles */
 
+
 .progress {
   width: 320px;
   height: 10px;
@@ -307,6 +308,7 @@ body {
 	background: #3333337a;
     border: 1px solid rgba(255, 247, 247, 0.35);
     backdrop-filter: blur(4px) saturate(180%);
+	-webkit-backdrop-filter: blur(4px) saturate(180%);
 }
 
 .dark-item{
@@ -366,6 +368,13 @@ table tbody tr:last-child td:first-child {
 table tbody tr:last-child td:last-child {
 	border-radius: 0 0 20px 0;
 }
+/* Rule Only FF */
+@-moz-document url-prefix() {
+	details[open] summary {
+
+	  background-color: #333333 !important;
+	}
+}
 
 /* Rule Mobile & PC */
 .mobileHidden {
@@ -386,6 +395,10 @@ table tbody tr:last-child td:last-child {
     }
 }
 @media (min-width: 992px) {
+	.sidebar details {
+		max-height: 40vh;
+	}
+
 	details {
 		
 		overflow: auto;
