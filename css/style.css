@@ -56,6 +56,13 @@ details[open] summary {
 
 /* Other Styles */
 
+.social-link {
+	margin-left: 5px;
+}
+
+.social-link img {
+	width: 25px; height: 25px
+}
 
 .progress {
   width: 320px;
